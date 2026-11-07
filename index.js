@@ -8,9 +8,9 @@ const pool = new Pool({
   port: 5432,
 });
 
-async function runDatabaseDemo() {
+async function runSafeInsert() {
   try {
-    // 1. Create a table
+    // Ensure table exists
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -18,18 +18,27 @@ async function runDatabaseDemo() {
         email VARCHAR(50)
       );
     `);
-    console.log('Table "users" is ready!');
 
-    // 2. Insert a new user
-    await pool.query(`
+    // We want to insert a new user dynamically and safely
+    const inputName = "Bob";
+    const inputEmail = "bob@example.com";
+
+    // $1 and $2 are placeholders for the array elements below
+    const insertQuery = `
       INSERT INTO users (name, email) 
-      VALUES ('Alice', 'alice@example.com');
-    `);
-    console.log("Inserted a new user: Alice");
+      VALUES ($1, $2)
+      RETURNING *;
+    `;
 
-    // 3. Query all users from the table
+    const values = [inputName, inputEmail];
+
+    const res = await pool.query(insertQuery, values);
+    console.log("Successfully inserted user safely:");
+    console.log(res.rows[0]);
+
+    // Query all users to see everyone (Alice and Bob)
     const result = await pool.query("SELECT * FROM users;");
-    console.log("\n--- Current Users in Database ---");
+    console.log("\n--- All Users in Database ---");
     console.table(result.rows);
   } catch (err) {
     console.error("Database error:", err.stack);
@@ -38,4 +47,4 @@ async function runDatabaseDemo() {
   }
 }
 
-runDatabaseDemo();
+runSafeInsert();
