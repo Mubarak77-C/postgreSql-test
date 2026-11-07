@@ -24,3 +24,7 @@ async function testConnection() {
 }
 
 testConnection();
+
+//done
+//Successfully connected to PostgreSQL!
+//Current Database Time: 2026-11-07T13:13:20.682Z
