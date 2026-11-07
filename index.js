@@ -1,6 +1,5 @@
 const { Pool } = require("pg");
 
-// Create a pool to connect to your local PostgreSQL database
 const pool = new Pool({
   user: "ubuntu",
   host: "localhost",
@@ -9,22 +8,34 @@ const pool = new Pool({
   port: 5432,
 });
 
-async function testConnection() {
+async function runDatabaseDemo() {
   try {
-    // Ask PostgreSQL for the current database time
-    const res = await pool.query("SELECT NOW()");
-    console.log("Successfully connected to PostgreSQL!");
-    console.log("Current Database Time:", res.rows[0].now);
+    // 1. Create a table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(50),
+        email VARCHAR(50)
+      );
+    `);
+    console.log('Table "users" is ready!');
+
+    // 2. Insert a new user
+    await pool.query(`
+      INSERT INTO users (name, email) 
+      VALUES ('Alice', 'alice@example.com');
+    `);
+    console.log("Inserted a new user: Alice");
+
+    // 3. Query all users from the table
+    const result = await pool.query("SELECT * FROM users;");
+    console.log("\n--- Current Users in Database ---");
+    console.table(result.rows);
   } catch (err) {
-    console.error("Connection error:", err.stack);
+    console.error("Database error:", err.stack);
   } finally {
-    // Close the database pool connection
     await pool.end();
   }
 }
 
-testConnection();
-
-//done
-//Successfully connected to PostgreSQL!
-//Current Database Time: 2026-11-07T13:13:20.682Z
+runDatabaseDemo();
